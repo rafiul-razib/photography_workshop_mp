@@ -30,7 +30,7 @@ export default function RegistrationPage() {
 
   const onSubmit = (data) => {
     data.guests = guests;
-    console.log("Form Submitted:", data);
+    // console.log("Form Submitted:", data);
   };
 
   return (

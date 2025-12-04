@@ -2,8 +2,8 @@ import React from 'react';
 
 const Login = () => {
     return (
-        <div>
-            <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+        <div className='flex justify-center items-center bg-linear-to-br from-[#0b182b] via-[#042e6d] to-[#5d8dd3] py-12 px-4 h-screen'>
+            <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl text-white">
             <div className="card-body">
                 <fieldset className="fieldset">
                 <label className="label">Email</label>
