@@ -41,6 +41,9 @@ export default function Registration() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+  // console.log(uploadedImageUrl);
+
   
 
   const increaseGuests = () => setGuests((p) => p + 1);
@@ -179,7 +182,33 @@ export default function Registration() {
                       </FormItem>
                     )}
                   />
-                 
+
+
+                  <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Present Address *</FormLabel>
+                      <FormControl>
+                        <Input className="bg-white" {...field} placeholder="Your address" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                </div>
+
+                <div className="">
+                  
+
+                  <div className="w-full md:w-[50%] my-4 mx-auto">
+                    <img
+                      src="https://res.cloudinary.com/datldhldb/image/upload/v1764828484/qapibrah5lzfhb9kset2.png"
+                      alt="Preview"
+                      className="w-full object-cover rounded-lg border"
+                    />
+                  </div>
 
                   <FormField
                     control={form.control}
@@ -187,10 +216,10 @@ export default function Registration() {
                     rules={{ required: "T-shirt size is required" }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-white">T-Shirt Size *</FormLabel>
+                        <FormLabel className="text-white w-full">Your T-Shirt Size *</FormLabel>
                         <FormControl>
                           <Select onValueChange={field.onChange}>
-                            <SelectTrigger className="text-white">
+                            <SelectTrigger className="text-white w-full">
                               <SelectValue className="text-white" placeholder="Select size" />
                             </SelectTrigger>
                             <SelectContent className="bg-[#13171E]">
@@ -208,19 +237,7 @@ export default function Registration() {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Present Address *</FormLabel>
-                      <FormControl>
-                        <Input className="bg-white" {...field} placeholder="Your address" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
 
                 {/* ---------------- ACADEMIC ---------------- */}
                 <h2 className="text-2xl font-semibold bg-linear-to-r from-[#1DEDF4] to-[#9763EE] bg-clip-text text-transparent">
