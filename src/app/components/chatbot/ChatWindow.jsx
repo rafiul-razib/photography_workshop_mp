@@ -5,15 +5,29 @@ import { Bot, Loader2, Send, X } from "lucide-react";
 import { FaCameraRetro } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 // import { useToast } from "@/hooks/use-toast";
 
-// Env vars
-const CHAT_URL = `https://photography-workshop-server.vercel.app/chat`;
-// const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const CHAT_SESSION_KEY = "photography_workshop_chat_session_id";
+
+const API_BASE =
+  (typeof process !== "undefined" &&
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "")) ||
+  "http://localhost:5000";
+
+const CHAT_URL = `${API_BASE}/chat`;
 
 function ChatWindow({ onClose }) {
   //   const { toast } = useToast();
+
+  const [sessionId, setSessionId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem(CHAT_SESSION_KEY);
+      return stored?.trim() || null;
+    } catch {
+      return null;
+    }
+  });
 
   const [messages, setMessages] = useState([
     {
@@ -26,15 +40,13 @@ function ChatWindow({ onClose }) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // IMPORTANT: ref goes to ScrollArea VIEWPORT
-  const viewportRef = useRef(null);
+  const scrollRef = useRef(null);
 
-  // Auto-scroll
   useEffect(() => {
-    if (viewportRef.current) {
-      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
-    }
-  }, [messages]);
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages, isLoading]);
 
   async function handleSend() {
     if (!input.trim() || isLoading) return;
@@ -44,30 +56,47 @@ function ChatWindow({ onClose }) {
     setInput("");
     setIsLoading(true);
 
-    let assistantContent = "";
+    const body = {
+      messages: [userMessage],
+    };
+    if (sessionId) {
+      body.sessionId = sessionId;
+    }
 
     try {
       const response = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          //   Authorization: `Bearer ${SUPABASE_KEY}`,
         },
-        body: JSON.stringify({
-          // messages: [...messages, userMessage],
-          messages: [userMessage],
-        }),
+        body: JSON.stringify(body),
       });
 
-      // console.log("AI response", response)
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error("Failed to get AI response");
+        const errText =
+          typeof data?.error === "string"
+            ? data.error
+            : "Failed to get AI response";
+        throw new Error(errText);
       }
 
-      const data = await response.json();
-      console.log(data);
-      const assistantMessage = { role: "assistant", content: data.reply };
+      if (typeof data?.reply !== "string" || !data.reply.trim()) {
+        throw new Error("Empty response from assistant.");
+      }
+
+      if (typeof data.sessionId === "string" && data.sessionId.trim()) {
+        const nextId = data.sessionId.trim();
+        setSessionId(nextId);
+        try {
+          localStorage.setItem(CHAT_SESSION_KEY, nextId);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      const assistantMessage = { role: "assistant", content: data.reply.trim() };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -94,7 +123,7 @@ function ChatWindow({ onClose }) {
 
   return (
     <div className="h-[min(620px,calc(100vh-2rem))] w-[calc(100vw-2.5rem)] overflow-hidden rounded-sm border border-[#F07A10]/25 bg-[#071020] shadow-[0_24px_80px_rgba(0,0,0,0.58)] sm:w-[410px]">
-      <div className="relative flex h-full flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(240,100,0,0.18),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(20,70,180,0.18),transparent_40%),linear-gradient(180deg,#0B1628_0%,#071020_100%)]">
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(240,100,0,0.18),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(20,70,180,0.18),transparent_40%),linear-gradient(180deg,#0B1628_0%,#071020_100%)]">
       <span className="pointer-events-none absolute right-0 top-0 bottom-0 w-[5px] bg-[repeating-linear-gradient(to_bottom,#060E1A_0px,#060E1A_5px,rgba(240,122,16,0.18)_5px,rgba(240,122,16,0.18)_7px,#060E1A_7px,#060E1A_13px)]" />
       <span className="pointer-events-none absolute left-3 top-3 h-5 w-5 border-l border-t border-[#F07A10]/60" />
       <span className="pointer-events-none absolute bottom-3 right-4 h-5 w-5 border-b border-r border-[#F07A10]/60" />
@@ -127,9 +156,12 @@ function ChatWindow({ onClose }) {
         </div>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 bg-[#071020]/55">
-        <div ref={viewportRef} className="space-y-4 p-4">
+      {/* Messages — native scroll so ref + scrollTop work; min-h-0 lets flex child shrink */}
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#071020]/55 p-4"
+      >
+        <div className="space-y-4">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -163,7 +195,7 @@ function ChatWindow({ onClose }) {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Input */}
       <div className="border-t border-[#F07A10]/15 bg-[#0B1628]/95 p-4">
