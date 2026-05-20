@@ -422,7 +422,6 @@ export default function Registration() {
   };
 
   const onSubmit = (data) => {
-    data.guests = 0;
     data.photo = uploadedImageUrl;
     data.interest = interest;
     console.log("Checkout form data:", data);
@@ -771,6 +770,27 @@ export default function Registration() {
                       Pay via bKash
                     </div>
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="bkashTransactionId"
+                    rules={{ required: "bKash transaction ID is required" }}
+                    render={({ field }) => (
+                      <FormItem style={{ marginTop: "1rem" }}>
+                        <FormLabel className="pw-label">
+                          bKash Transaction ID *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            className="pw-input"
+                            {...field}
+                            placeholder="Enter bKash TrxID"
+                          />
+                        </FormControl>
+                        <FormMessage className="pw-error" />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* ── SUBMIT ── */}

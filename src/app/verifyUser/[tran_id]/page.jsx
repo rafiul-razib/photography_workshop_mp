@@ -201,6 +201,15 @@ const IconCamera = () => (
     <path d="M4.5 4L5.5 2h3L9.5 4" fill={C.orange} />
   </svg>
 );
+const IconID = () => (
+  <svg width="13" height="13" viewBox="0 0 14 14" fill={C.orange}>
+    <rect x="1" y="3" width="12" height="8" rx="1.5" />
+    <circle cx="4.5" cy="7" r="1.8" fill={C.navy3} />
+    <circle cx="4.5" cy="7" r="1" fill={C.orange} opacity="0.5" />
+    <rect x="7.5" y="5.5" width="4.5" height="1" rx="0.5" fill={C.navy3} />
+    <rect x="7.5" y="7.5" width="3.5" height="1" rx="0.5" fill={C.navy3} />
+  </svg>
+);
 
 /* ─────────────────────────────────────────
    INFO ROW  (inside card)
@@ -506,6 +515,11 @@ const IDCard = forwardRef(function IDCard({ user }, ref) {
           <InfoRow Icon={IconMail} label="Email" value={user.email} />
           <InfoRow Icon={IconPhone} label="Mobile" value={user.phone} />
           <InfoRow Icon={IconCamera} label="Interest" value={user.interest} />
+          <InfoRow
+            Icon={IconID}
+            label="Participant ID"
+            value={user.participantId || user.userId}
+          />
         </div>
 
         {/* Payment strip */}
@@ -624,7 +638,7 @@ export default function ProfileCardPage() {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `https://photography-workshop-server.vercel.app/verifyUser/${tran_id}`,
+          `http://localhost:5000/verifyUser/${tran_id}`,
         );
         setUser(res.data);
       } catch (err) {
@@ -751,45 +765,72 @@ export default function ProfileCardPage() {
         }}
       />
 
-      {/* Success header */}
+      {/* Header */}
       <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            border: "1px solid rgba(74,222,128,0.35)",
-            borderRadius: 2,
-            padding: "0.4rem 1.1rem",
-            marginBottom: "0.6rem",
-            background: "rgba(74,222,128,0.05)",
-          }}
-        >
-          <span
+        {user.paymentStatus ? (
+          <div
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "#4ADE80",
-              boxShadow: "0 0 6px #4ADE80",
-              animation: "pulse 1.5s ease-in-out infinite",
-              display: "inline-block",
-            }}
-          />
-          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.15}}`}</style>
-          <CheckCircle2 size={12} color="#4ADE80" />
-          <span
-            style={{
-              fontSize: "0.8rem",
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "#4ADE80",
-              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              border: "1px solid rgba(74,222,128,0.35)",
+              borderRadius: 2,
+              padding: "0.4rem 1.1rem",
+              marginBottom: "0.6rem",
+              background: "rgba(74,222,128,0.05)",
             }}
           >
-            Identification Confirmed
-          </span>
-        </div>
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#4ADE80",
+                boxShadow: "0 0 6px #4ADE80",
+                animation: "pulse 1.5s ease-in-out infinite",
+                display: "inline-block",
+              }}
+            />
+            <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.15}}`}</style>
+            <CheckCircle2 size={12} color="#4ADE80" />
+            <span
+              style={{
+                fontSize: "0.8rem",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "#4ADE80",
+                fontWeight: 500,
+              }}
+            >
+              Identification Confirmed
+            </span>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              border: "1px solid rgba(248,113,113,0.35)",
+              borderRadius: 2,
+              padding: "0.4rem 1.1rem",
+              marginBottom: "0.6rem",
+              background: "rgba(248,113,113,0.05)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.8rem",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "#F87171",
+                fontWeight: 500,
+              }}
+            >
+              Payment Pending
+            </span>
+          </div>
+        )}
         <p
           style={{
             fontSize: "0.6rem",
@@ -803,16 +844,53 @@ export default function ProfileCardPage() {
         </p>
       </div>
 
-      {/* Card with amber glow shadow */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          filter: "drop-shadow(0 16px 48px rgba(240,122,16,0.22))",
-        }}
-      >
-        <IDCard ref={pdfRef} user={user} />
-      </div>
+      {user.paymentStatus ? (
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            filter: "drop-shadow(0 16px 48px rgba(240,122,16,0.22))",
+          }}
+        >
+          <IDCard ref={pdfRef} user={user} />
+        </div>
+      ) : (
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            maxWidth: 420,
+            textAlign: "center",
+            padding: "1.75rem 2rem",
+            background: C.navy,
+            border: "1px solid rgba(240,122,16,0.25)",
+            borderRadius: 2,
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'Playfair Display',serif",
+              fontSize: "1.2rem",
+              fontWeight: 900,
+              color: C.white,
+              marginBottom: "0.6rem",
+            }}
+          >
+            ID Card Not Available
+          </p>
+          <p
+            style={{
+              fontSize: "0.82rem",
+              lineHeight: 1.55,
+              color: C.gray,
+              margin: 0,
+            }}
+          >
+            This participant&apos;s payment has not been verified yet. The ID
+            card will appear here after payment confirmation.
+          </p>
+        </div>
+      )}
 
       {/* Download button */}
       {/* <button

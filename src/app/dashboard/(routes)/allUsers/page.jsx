@@ -6,7 +6,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FaUserCheck, FaUsers } from "react-icons/fa";
 import { MdOutlinePayments } from "react-icons/md";
 import { RiPrinterLine, RiRefreshLine } from "react-icons/ri";
-import { Camera, Mail, Phone, AlertCircle } from "lucide-react";
+import {
+  AlertCircle,
+  Camera,
+  CheckCircle2,
+  Mail,
+  Phone,
+  X,
+  XCircle,
+} from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -222,6 +230,13 @@ const styles = `
     font-weight:500; color:${C.white};
     overflow:hidden; text-overflow:ellipsis; max-width:160px;
   }
+  .au-trx-text,
+  .au-id-text {
+    font-size:0.75rem; color:rgba(200,215,230,0.9);
+    font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing:0.02em;
+    overflow:hidden; text-overflow:ellipsis; display:block; max-width:140px;
+  }
 
   /* badges */
   .au-badge-paid {
@@ -238,6 +253,133 @@ const styles = `
     border:1px solid rgba(251,191,36,0.28); border-radius:2px;
     padding:0.18rem 0.6rem; background:rgba(251,191,36,0.07);
   }
+  .au-verify-btn {
+    display:inline-flex; align-items:center; gap:0.35rem;
+    padding:0.35rem 0.7rem;
+    background:rgba(74,222,128,0.1);
+    border:1px solid rgba(74,222,128,0.35); border-radius:2px;
+    font-family:'DM Sans',sans-serif; font-size:0.62rem;
+    letter-spacing:0.1em; text-transform:uppercase;
+    font-weight:600; color:#4ADE80; cursor:pointer;
+    transition:background 0.18s, border-color 0.18s, opacity 0.18s;
+    white-space:nowrap;
+  }
+  .au-verify-btn:hover:not(:disabled) {
+    background:rgba(74,222,128,0.18);
+    border-color:rgba(74,222,128,0.55);
+  }
+  .au-verify-btn:disabled { opacity:0.45; cursor:not-allowed; }
+  .au-print-id-btn {
+    display:inline-flex; align-items:center; gap:0.35rem;
+    padding:0.35rem 0.7rem;
+    background:rgba(240,122,16,0.1);
+    border:1px solid rgba(240,122,16,0.35); border-radius:2px;
+    font-family:'DM Sans',sans-serif; font-size:0.62rem;
+    letter-spacing:0.1em; text-transform:uppercase;
+    font-weight:600; color:${C.orange}; cursor:pointer;
+    text-decoration:none;
+    transition:background 0.18s, border-color 0.18s, opacity 0.18s;
+    white-space:nowrap;
+  }
+  .au-print-id-btn:hover {
+    background:rgba(240,122,16,0.18);
+    border-color:rgba(240,122,16,0.55);
+  }
+
+  /* modal */
+  .au-modal-overlay {
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    padding:1rem;
+    background:rgba(7,16,32,0.82);
+    backdrop-filter:blur(4px);
+  }
+  .au-modal {
+    width:100%; max-width:440px;
+    background:${C.navy}; border:1px solid rgba(240,122,16,0.25);
+    border-radius:2px; padding:1.75rem; text-align:center;
+    position:relative;
+  }
+  .au-modal.error { border-color:rgba(248,113,113,0.4); }
+  .au-modal.success { border-color:rgba(74,222,128,0.35); }
+  .au-modal-title {
+    font-family:'Playfair Display',serif;
+    font-size:1.35rem; font-weight:900; line-height:1.2;
+    color:${C.white}; margin:0.75rem 0 0.5rem;
+  }
+  .au-modal-text {
+    font-size:0.85rem; line-height:1.55; color:${C.gray}; margin:0;
+  }
+  .au-modal-note {
+    margin-top:1rem; padding:0.85rem 1rem; border-radius:2px;
+    text-align:left; font-size:0.82rem; line-height:1.5;
+  }
+  .au-modal-note.confirm {
+    border:1px solid rgba(240,122,16,0.3);
+    background:rgba(240,122,16,0.08); color:#EADBCB;
+  }
+  .au-modal-note.error {
+    border:1px solid rgba(248,113,113,0.4);
+    background:rgba(248,113,113,0.1); color:#FECACA;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .au-modal-note.success {
+    border:1px solid rgba(74,222,128,0.35);
+    background:rgba(74,222,128,0.08); color:#BBF7D0;
+  }
+  .au-modal-actions {
+    margin-top:1.25rem; display:flex; gap:0.65rem;
+    justify-content:center; flex-wrap:wrap;
+  }
+  .au-modal-btn {
+    padding:0.75rem 1.1rem; border:none; border-radius:2px;
+    font-family:'DM Sans',sans-serif; font-size:0.68rem;
+    font-weight:600; letter-spacing:0.14em; text-transform:uppercase;
+    cursor:pointer;
+  }
+  .au-modal-btn.primary { background:${C.orange}; color:${C.navy3}; }
+  .au-modal-btn.secondary {
+    background:transparent; color:${C.white};
+    border:1px solid rgba(255,255,255,0.22);
+  }
+  .au-modal-btn:disabled { opacity:0.45; cursor:not-allowed; }
+
+  /* id card viewer (inside dashboard) */
+  .au-id-modal-overlay {
+    position:fixed; inset:0; z-index:200;
+    display:flex; align-items:center; justify-content:center;
+    padding:1.25rem;
+    background:rgba(7,16,32,0.88);
+    backdrop-filter:blur(6px);
+  }
+  .au-id-modal-panel {
+    width:100%; max-width:920px; height:min(92vh, 900px);
+    display:flex; flex-direction:column;
+    background:${C.navy};
+    border:1px solid rgba(240,122,16,0.28);
+    border-radius:2px; overflow:hidden;
+  }
+  .au-id-modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:1rem; padding:0.85rem 1rem;
+    border-bottom:1px solid rgba(240,122,16,0.2);
+    background:${C.navy2};
+  }
+  .au-id-modal-title {
+    font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase;
+    color:${C.orange}; font-weight:600;
+  }
+  .au-id-modal-close {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:32px;
+    background:transparent; border:1px solid rgba(255,255,255,0.2);
+    border-radius:2px; color:${C.white}; cursor:pointer;
+  }
+  .au-id-modal-close:hover { border-color:rgba(240,122,16,0.5); color:${C.orange}; }
+  .au-id-modal-iframe {
+    flex:1; width:100%; border:0; background:${C.navy3};
+  }
+
   .au-badge-interest {
     font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase;
     color:${C.orange}; border:1px solid rgba(240,122,16,0.3);
@@ -284,7 +426,10 @@ const styles = `
   }
 
   @media print {
-    @page { margin: 14mm; }
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
 
     body {
       background: #fff !important;
@@ -378,7 +523,9 @@ const styles = `
     .au-table td,
     .au-table th,
     .au-name-text,
-    .au-row-num {
+    .au-row-num,
+    .au-trx-text,
+    .au-id-text {
       color: #000 !important;
     }
 
@@ -402,12 +549,14 @@ const styles = `
 
     .au-table-wrap {
       overflow: visible !important;
+      width: 100% !important;
     }
 
     table.au-table {
       width: 100% !important;
+      table-layout: fixed !important;
       border-collapse: collapse !important;
-      font-size: 10px !important;
+      font-size: 8px !important;
     }
 
     .au-table thead tr {
@@ -423,11 +572,35 @@ const styles = `
 
     .au-table th,
     .au-table td {
-      padding: 6px 8px !important;
+      padding: 4px 5px !important;
       border: 1px solid #999 !important;
       white-space: normal !important;
       vertical-align: top !important;
+      word-break: break-word !important;
+      overflow: visible !important;
     }
+
+    .au-action-col,
+    .au-verify-btn {
+      display: none !important;
+    }
+
+    .au-table th:nth-child(1),
+    .au-table td:nth-child(1) { width: 3% !important; }
+    .au-table th:nth-child(2),
+    .au-table td:nth-child(2) { width: 14% !important; }
+    .au-table th:nth-child(3),
+    .au-table td:nth-child(3) { width: 16% !important; }
+    .au-table th:nth-child(4),
+    .au-table td:nth-child(4) { width: 10% !important; }
+    .au-table th:nth-child(5),
+    .au-table td:nth-child(5) { width: 11% !important; }
+    .au-table th:nth-child(6),
+    .au-table td:nth-child(6) { width: 11% !important; }
+    .au-table th:nth-child(7),
+    .au-table td:nth-child(7) { width: 12% !important; }
+    .au-table th:nth-child(8),
+    .au-table td:nth-child(8) { width: 8% !important; }
 
     .au-interest-col {
       display: table-cell !important;
@@ -450,7 +623,7 @@ const styles = `
       padding: 0 !important;
       margin: 0 !important;
       font-family: Arial, sans-serif !important;
-      font-size: 10px !important;
+      font-size: 8px !important;
       font-weight: 400 !important;
       line-height: 1.3 !important;
       letter-spacing: 0 !important;
@@ -470,7 +643,7 @@ const styles = `
       color: #000 !important;
       background: transparent !important;
       font-family: Arial, sans-serif !important;
-      font-size: 10px !important;
+      font-size: 8px !important;
       font-weight: 400 !important;
       line-height: 1.3 !important;
       letter-spacing: 0 !important;
@@ -489,6 +662,20 @@ const styles = `
       text-overflow: initial !important;
     }
 
+    .au-trx-text,
+    .au-id-text {
+      color: #000 !important;
+      font-family: Arial, sans-serif !important;
+      font-size: 10px !important;
+      font-weight: 400 !important;
+      max-width: none !important;
+      overflow: visible !important;
+      text-overflow: initial !important;
+      white-space: normal !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
     .au-badge-paid,
     .au-badge-pending {
       display: inline !important;
@@ -499,7 +686,7 @@ const styles = `
       padding: 0 !important;
       letter-spacing: 0 !important;
       text-transform: none !important;
-      font-size: 10px !important;
+      font-size: 8px !important;
       font-weight: 400 !important;
       line-height: 1.3 !important;
     }
@@ -542,10 +729,159 @@ const getParticipantInterest = (user) =>
   user?.workshopInterest ||
   "";
 
+const getVerifyIdentifier = (user) =>
+  user?.participantId ||
+  user?.bkashTransactionId ||
+  user?.transactionId ||
+  user?.userId ||
+  null;
+
+const getTransactionId = (user) =>
+  user?.bkashTransactionId || user?.transactionId || null;
+
+const getParticipantId = (user) =>
+  user?.participantId || user?.userId || null;
+
+const getIdCardPrintRouteId = (user) =>
+  user?.bkashTransactionId || user?.transactionId || user?.participantId || null;
+
+function IdCardModal({ idCardView, onClose }) {
+  if (!idCardView?.routeId) return null;
+
+  const src = `/paymentConfirmation/success/${encodeURIComponent(idCardView.routeId)}`;
+
+  return (
+    <div
+      className="au-id-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="au-id-modal-panel">
+        <div className="au-id-modal-header">
+          <span className="au-id-modal-title">
+            ID Card — {idCardView.participantName || "Participant"}
+          </span>
+          <button
+            type="button"
+            className="au-id-modal-close"
+            onClick={onClose}
+            aria-label="Close ID card"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <iframe
+          src={src}
+          title={`ID card for ${idCardView.participantName || "participant"}`}
+          className="au-id-modal-iframe"
+        />
+      </div>
+    </div>
+  );
+}
+
+function VerifyModal({ modal, verifyingKey, onClose, onConfirm }) {
+  if (!modal) return null;
+
+  if (modal.type === "confirm") {
+    const user = modal.user;
+    const rowKey = user._id || getVerifyIdentifier(user);
+    const isVerifying = verifyingKey === rowKey;
+
+    return (
+      <div className="au-modal-overlay" role="dialog" aria-modal="true">
+        <div className="au-modal">
+          <FaUserCheck size={44} color={C.orange} style={{ margin: "0 auto" }} />
+          <h2 className="au-modal-title">Verify Participant?</h2>
+          <p className="au-modal-text">
+            Confirm manual payment verification for this registration.
+          </p>
+          <p className="au-modal-note confirm">
+            <strong style={{ color: C.white }}>{user.fullName || "—"}</strong>
+            <br />
+            {user.email || "—"}
+            <br />
+            ID: {getVerifyIdentifier(user) || "—"}
+          </p>
+          <div className="au-modal-actions">
+            <button
+              type="button"
+              className="au-modal-btn secondary"
+              onClick={onClose}
+              disabled={isVerifying}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="au-modal-btn primary"
+              onClick={onConfirm}
+              disabled={isVerifying}
+            >
+              {isVerifying ? "Verifying…" : "Confirm Verify"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (modal.type === "success") {
+    return (
+      <div className="au-modal-overlay" role="dialog" aria-modal="true">
+        <div className="au-modal success">
+          <CheckCircle2 size={48} color="#22C55E" style={{ margin: "0 auto" }} />
+          <h2 className="au-modal-title">Verification Successful</h2>
+          <p className="au-modal-text">{modal.message}</p>
+          {modal.participantName && (
+            <p className="au-modal-note success">
+              {modal.participantName} has been marked as verified. Confirmation
+              email will be sent if configured.
+            </p>
+          )}
+          <div className="au-modal-actions">
+            <button type="button" className="au-modal-btn primary" onClick={onClose}>
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (modal.type === "error") {
+    return (
+      <div className="au-modal-overlay" role="dialog" aria-modal="true">
+        <div className="au-modal error">
+          <XCircle size={48} color="#EF4444" style={{ margin: "0 auto" }} />
+          <h2 className="au-modal-title">Verification Failed</h2>
+          <p className="au-modal-text">
+            Could not verify this participant. Please review the details below.
+          </p>
+          <p className="au-modal-note error">{modal.message}</p>
+          <div className="au-modal-actions">
+            <button type="button" className="au-modal-btn primary" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function AllParticipants() {
   const [allUsers, setAllUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [verifyingKey, setVerifyingKey] = useState(null);
+  const [modal, setModal] = useState(null);
+  const [idCardView, setIdCardView] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -573,6 +909,51 @@ export default function AllParticipants() {
     document.title = currentTitle;
   };
 
+  const handleVerifyClick = (user) => {
+    const identifier = getVerifyIdentifier(user);
+    if (!identifier) {
+      setModal({
+        type: "error",
+        message: "This participant has no ID to verify.",
+      });
+      return;
+    }
+    setModal({ type: "confirm", user });
+  };
+
+  const handleConfirmVerify = async () => {
+    if (modal?.type !== "confirm") return;
+
+    const user = modal.user;
+    const identifier = getVerifyIdentifier(user);
+    const rowKey = user._id || identifier;
+
+    try {
+      setVerifyingKey(rowKey);
+      await axios.post("/api/admin/confirm-payment", {
+        participantId: user.participantId,
+        bkashTransactionId: user.bkashTransactionId,
+        transactionId: user.transactionId,
+        userId: user.userId,
+      });
+      await fetchData();
+      setModal({
+        type: "success",
+        participantName: user.fullName || "Participant",
+        message: "Participant verified successfully.",
+      });
+    } catch (err) {
+      console.error("Verify participant error:", err);
+      setModal({
+        type: "error",
+        message:
+          err?.response?.data?.message || "Failed to verify participant.",
+      });
+    } finally {
+      setVerifyingKey(null);
+    }
+  };
+
   const paidUsers = allUsers.filter((u) => u.paymentStatus).length;
   const pendingUsers = allUsers.length - paidUsers;
   const withPhoto = allUsers.filter((u) => u.photo).length;
@@ -580,6 +961,18 @@ export default function AllParticipants() {
   return (
     <section className="au-root" style={{ maxWidth: 1200, margin: "0 auto" }}>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
+
+      <VerifyModal
+        modal={modal}
+        verifyingKey={verifyingKey}
+        onClose={() => setModal(null)}
+        onConfirm={handleConfirmVerify}
+      />
+
+      <IdCardModal
+        idCardView={idCardView}
+        onClose={() => setIdCardView(null)}
+      />
 
       {/* ── PAGE HEADER ── */}
       <div className="au-header">
@@ -650,21 +1043,21 @@ export default function AllParticipants() {
           delay={0}
         />
         <StatCard
-          label="Paid"
-          value={paidUsers}
-          helper="Verified payments"
-          icon={FaUserCheck}
-          iconColor="#4ADE80"
-          variant="paid"
-          delay={0.06}
-        />
-        <StatCard
           label="Pending"
           value={pendingUsers}
-          helper="Awaiting payment"
+          helper="Awaiting verification"
           icon={MdOutlinePayments}
           iconColor="#FBBF24"
           variant="pending"
+          delay={0.06}
+        />
+        <StatCard
+          label="Verified"
+          value={paidUsers}
+          helper="Confirmed participants"
+          icon={FaUserCheck}
+          iconColor="#4ADE80"
+          variant="paid"
           delay={0.12}
         />
         <StatCard
@@ -774,6 +1167,30 @@ export default function AllParticipants() {
                         Mobile
                       </span>
                     </th>
+                    <th>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <FaUserCheck size={10} />
+                        Participant ID
+                      </span>
+                    </th>
+                    <th>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <MdOutlinePayments size={10} />
+                        Transaction ID
+                      </span>
+                    </th>
                     <th className="au-interest-col">
                       <span
                         style={{
@@ -787,6 +1204,7 @@ export default function AllParticipants() {
                       </span>
                     </th>
                     <th>Payment</th>
+                    <th className="au-action-col">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -846,6 +1264,26 @@ export default function AllParticipants() {
                       {/* phone */}
                       <td style={{ color: C.gray }}>{user.phone || "—"}</td>
 
+                      {/* participant id */}
+                      <td>
+                        <span
+                          className="au-id-text"
+                          title={getParticipantId(user) || undefined}
+                        >
+                          {getParticipantId(user) || "—"}
+                        </span>
+                      </td>
+
+                      {/* transaction id */}
+                      <td>
+                        <span
+                          className="au-trx-text"
+                          title={getTransactionId(user) || undefined}
+                        >
+                          {getTransactionId(user) || "—"}
+                        </span>
+                      </td>
+
                       {/* interest */}
                       <td
                         className="au-interest-col"
@@ -879,6 +1317,43 @@ export default function AllParticipants() {
                           <span className="au-badge-paid">✓ Paid</span>
                         ) : (
                           <span className="au-badge-pending">Pending</span>
+                        )}
+                      </td>
+
+                      {/* verify / print id */}
+                      <td className="au-action-col">
+                        {user.paymentStatus ? (
+                          getIdCardPrintRouteId(user) ? (
+                            <button
+                              type="button"
+                              className="au-print-id-btn"
+                              onClick={() =>
+                                setIdCardView({
+                                  routeId: getIdCardPrintRouteId(user),
+                                  participantName: user.fullName,
+                                })
+                              }
+                            >
+                              <RiPrinterLine size={11} />
+                              Print ID
+                            </button>
+                          ) : (
+                            <span className="au-badge-paid">Verified</span>
+                          )
+                        ) : (
+                          <button
+                            type="button"
+                            className="au-verify-btn"
+                            disabled={
+                              verifyingKey === (user._id || getVerifyIdentifier(user))
+                            }
+                            onClick={() => handleVerifyClick(user)}
+                          >
+                            <FaUserCheck size={11} />
+                            {verifyingKey === (user._id || getVerifyIdentifier(user))
+                              ? "Verifying…"
+                              : "Verify"}
+                          </button>
                         )}
                       </td>
                     </motion.tr>

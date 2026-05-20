@@ -286,6 +286,11 @@ const css = `
   @media (min-width: 1024px) { .db-main { padding: 36px 36px; } }
 
   @media print {
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+
     .db-root {
       background: #fff !important;
       color: #000 !important;
@@ -352,7 +357,7 @@ function ApertureSVG({ size = 34 }) {
 const navItems = [
   { label: "Participants", href: "/dashboard/allUsers", Icon: FaUsers },
   { label: "Registration", href: "/", Icon: FaRegCalendarCheck },
-  { label: "Payment", href: "/paymentConfirmation", Icon: RiSecurePaymentLine },
+  { label: "Payments", href: "/dashboard/payments", Icon: RiSecurePaymentLine },
   { label: "Admin", href: "/admin", Icon: HiOutlineCog6Tooth },
 ];
 

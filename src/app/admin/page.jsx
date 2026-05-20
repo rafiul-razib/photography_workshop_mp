@@ -276,16 +276,16 @@ const styles = `
     border: 1px solid rgba(240,122,16,0.3);
     border-radius: 50%;
     background: rgba(240,122,16,0.08);
-    color: var(--orange);
     position: relative;
+    overflow: hidden;
   }
 
-  .admin-form-icon::before {
-    content: '';
-    position: absolute;
-    inset: 10px;
-    border-radius: 50%;
-    border: 1px solid rgba(240,122,16,0.35);
+  .admin-form-icon-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
   }
 
   .admin-form-head {
@@ -450,11 +450,10 @@ export default async function AdminPage({ searchParams }) {
 
           <div className="admin-note-grid">
             <div className="admin-note">
-              Dashboard access is protected with NextAuth credentials.
+              Verify paid participant from the admin dashboard.
             </div>
             <div className="admin-note">
-              Authenticated admins are redirected directly to participant
-              management.
+              Prin ID Card from the admin dashboard.
             </div>
           </div>
         </section>

@@ -2,21 +2,9 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { ArrowRight, Smartphone } from "lucide-react";
+import { ArrowRight, CheckCircle2, Smartphone, XCircle } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-const getPaymentUrl = (d) =>
-  d?.bkashURL ||
-  d?.bKashURL ||
-  d?.paymentUrl ||
-  d?.payment_url ||
-  d?.redirectURL ||
-  d?.redirectUrl ||
-  d?.GatewayPageURL ||
-  d?.gatewayPageURL ||
-  d?.redirectGatewayURL ||
-  d?.url;
 
 /* ─────────────────────────────────────────
    STYLES — navy + orange (matches suite)
@@ -294,6 +282,60 @@ const styles = `
   /* ── FADE-IN ── */
   .pc-fade { opacity:0; animation:pcFadeUp 0.45s ease forwards; }
   @keyframes pcFadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+  /* ── MODAL ── */
+  .pc-modal-overlay {
+    position:fixed; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    padding:1rem;
+    background:rgba(7,16,32,0.82);
+    backdrop-filter:blur(4px);
+  }
+  .pc-modal {
+    width:100%; max-width:480px;
+    background:var(--navy);
+    border:1px solid rgba(240,122,16,0.25);
+    border-radius:2px;
+    padding:2rem;
+    text-align:center;
+    position:relative;
+    animation:pcFadeUp 0.3s ease forwards;
+  }
+  .pc-modal.error { border-color:rgba(239,68,68,0.45); }
+  .pc-modal-title {
+    font-family:'Playfair Display',serif;
+    font-size:1.45rem; font-weight:900; line-height:1.2;
+    margin:0.75rem 0 0.5rem; color:var(--white);
+  }
+  .pc-modal-text {
+    font-size:0.85rem; line-height:1.55; color:var(--gray);
+    margin:0;
+  }
+  .pc-modal-note {
+    margin-top:1rem; padding:0.9rem 1rem;
+    border-radius:2px; text-align:left;
+    font-size:0.82rem; line-height:1.5;
+  }
+  .pc-modal-note.success {
+    border:1px solid rgba(240,122,16,0.35);
+    background:rgba(240,122,16,0.08);
+    color:#EADBCB;
+  }
+  .pc-modal-note.error {
+    border:1px solid rgba(239,68,68,0.45);
+    background:rgba(239,68,68,0.1);
+    color:#FECACA;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .pc-modal-btn {
+    margin-top:1.25rem; width:100%;
+    padding:0.85rem;
+    background:var(--orange); border:none; border-radius:2px;
+    font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600;
+    letter-spacing:0.18em; text-transform:uppercase; color:var(--navy3);
+    cursor:pointer;
+  }
+  .pc-modal-btn:hover { opacity:0.88; }
 `;
 
 const DELAYS = [
@@ -306,6 +348,69 @@ const DELAYS = [
   "0.35s",
   "0.4s",
 ];
+
+function getServerErrorMessage(err) {
+  const responseData = err?.response?.data;
+  if (
+    typeof responseData?.message === "string" &&
+    responseData.message.trim()
+  ) {
+    return responseData.message;
+  }
+  if (Array.isArray(responseData?.message) && responseData.message.length) {
+    return responseData.message.join(", ");
+  }
+  if (typeof responseData?.error === "string" && responseData.error.trim()) {
+    return responseData.error;
+  }
+  if (typeof responseData === "string" && responseData.trim()) {
+    return responseData;
+  }
+  if (responseData && typeof responseData === "object") {
+    return JSON.stringify(responseData);
+  }
+  return "Failed to confirm registration. Please try again.";
+}
+
+function RegistrationModal({ modal, onClose }) {
+  if (!modal) return null;
+
+  const isSuccess = modal.type === "success";
+
+  return (
+    <div className="pc-modal-overlay" role="dialog" aria-modal="true">
+      <div className={`pc-modal${isSuccess ? "" : " error"}`}>
+        {isSuccess ? (
+          <CheckCircle2
+            size={52}
+            color="#22C55E"
+            style={{ margin: "0 auto" }}
+          />
+        ) : (
+          <XCircle size={52} color="#EF4444" style={{ margin: "0 auto" }} />
+        )}
+        <h2 className="pc-modal-title">
+          {isSuccess
+            ? `Congratulations, ${modal.participantName}!`
+            : "Registration Failed"}
+        </h2>
+        <p className="pc-modal-text">
+          {isSuccess
+            ? "Your registration has been confirmed successfully."
+            : "We could not complete your registration. Please review the details below."}
+        </p>
+        <p className={`pc-modal-note ${isSuccess ? "success" : "error"}`}>
+          {isSuccess
+            ? "Your ID card will be sent to your registered email within 24 hours after verification."
+            : modal.message}
+        </p>
+        <button type="button" className="pc-modal-btn" onClick={onClose}>
+          {isSuccess ? "Back to Home" : "Close"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function InfoRow({ label, value, isBadge, delay }) {
   return (
@@ -323,6 +428,7 @@ export default function PaymentConfirmation() {
   const [storageChecked, setStorageChecked] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [modal, setModal] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("formData");
@@ -402,26 +508,42 @@ export default function PaymentConfirmation() {
   const handleConfirm = async () => {
     setSubmitting(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/register`, {
-        ...data,
-        guests: guestCount,
-        totalAmount,
-        payment: "bkash",
+      const registrationPayload = {
+        fullName: data.fullName,
+        phone: data.phone,
+        email: data.email,
+        photo: data.photo,
+        bkashTransactionId: data.bkashTransactionId,
+        interest: data.interest,
+        totalAmount: 1250,
         paymentMethod: "bkash",
-        paymentProvider: "bkash",
+        paymentStatus: false,
+      };
+
+      await axios.post(`${API_BASE_URL}/register`, registrationPayload);
+      localStorage.removeItem("formData");
+      setModal({
+        type: "success",
+        participantName: data.fullName || "Participant",
       });
-      const url = getPaymentUrl(res.data);
-      if (url) {
-        window.location.assign(url);
-        return;
-      }
-      alert("Registration failed. Please try again.");
     } catch (err) {
       console.error("Error saving applicant:", err);
-      alert("Something went wrong!");
+      console.log("Registration failed response:", err?.response?.data);
+      setModal({
+        type: "error",
+        message: getServerErrorMessage(err),
+      });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleModalClose = () => {
+    if (modal?.type === "success") {
+      window.location.href = "/";
+      return;
+    }
+    setModal(null);
   };
 
   return (
@@ -430,6 +552,8 @@ export default function PaymentConfirmation() {
       <div className="pc-bokeh-tl" />
       <div className="pc-bokeh-br" />
       <div className="pc-ring-bg" />
+
+      <RegistrationModal modal={modal} onClose={handleModalClose} />
 
       <div className="pc-card">
         {/* HEADER */}
@@ -490,8 +614,13 @@ export default function PaymentConfirmation() {
             isBadge
             delay={DELAYS[3]}
           />
+          <InfoRow
+            label="bKash TrxID"
+            value={data.bkashTransactionId}
+            delay={DELAYS[4]}
+          />
           {guestCount > 0 && (
-            <InfoRow label="Guests" value={guestCount} delay={DELAYS[4]} />
+            <InfoRow label="Guests" value={guestCount} delay={DELAYS[5]} />
           )}
         </div>
 
@@ -549,7 +678,7 @@ export default function PaymentConfirmation() {
           onClick={handleConfirm}
           disabled={!isChecked || submitting}
         >
-          {submitting ? "Opening bKash…" : "Pay with bKash"}
+          {submitting ? "Confirming Registration..." : "Confirm Registration"}
           {!submitting && <ArrowRight size={13} />}
         </button>
       </div>

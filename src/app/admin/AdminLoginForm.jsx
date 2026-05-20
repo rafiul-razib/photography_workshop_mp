@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
-import { IoSparklesSharp } from "react-icons/io5";
 
 export default function AdminLoginForm({ callbackUrl }) {
   const router = useRouter();
@@ -50,7 +49,7 @@ export default function AdminLoginForm({ callbackUrl }) {
     <form onSubmit={handleSubmit} className="admin-form">
       <div className="admin-form-head">
         <span className="admin-form-icon">
-          <IoSparklesSharp className="h-6 w-6" />
+          <img src="/favicon.ico" alt="" className="admin-form-icon-img" />
         </span>
         <p className="admin-eyebrow">Admin Access</p>
         <h1 className="admin-form-title">Welcome Back</h1>

@@ -371,7 +371,10 @@ const IDCard = forwardRef(function IDCard({ user, qrImage }, ref) {
     { Icon: IconPerson, value: user.fullName },
     { Icon: IconBriefcase, value: user.interest },
     { Icon: IconPhone, value: user.phone },
-    { Icon: IconID, value: user.email },
+    {
+      Icon: IconID,
+      value: user.participantId || user.userId || "—",
+    },
   ];
 
   return (
@@ -480,7 +483,7 @@ const IDCard = forwardRef(function IDCard({ user, qrImage }, ref) {
           display: "flex",
           flexDirection: "column",
           padding: "10px 14px 12px 14px",
-          zIndex: 2,
+          zIndex: 5,
           boxSizing: "border-box",
         }}
       >
@@ -826,6 +829,8 @@ const IDCard = forwardRef(function IDCard({ user, qrImage }, ref) {
             marginTop: 8,
             borderTop: `1px solid rgba(240,122,16,0.15)`,
             paddingTop: 6,
+            position: "relative",
+            zIndex: 10,
           }}
         >
           <span
@@ -841,10 +846,12 @@ const IDCard = forwardRef(function IDCard({ user, qrImage }, ref) {
           </span>
           <span
             style={{
+              position: "relative",
               fontSize: 10,
-              color: C.orange,
+              color: C.white,
               fontWeight: 700,
               letterSpacing: "0.04em",
+              zIndex: 11,
             }}
           >
             BDT {user.totalAmount}
@@ -862,7 +869,7 @@ const IDCard = forwardRef(function IDCard({ user, qrImage }, ref) {
           height: 52,
           background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeD} 100%)`,
           clipPath: "polygon(100% 0, 100% 100%, 0 100%)",
-          zIndex: 4,
+          zIndex: 1,
         }}
       />
 
@@ -898,10 +905,15 @@ export default function ProfileCardPage() {
       try {
         const res = await axios.get(`${API_BASE_URL}/verifyUser/${tran_id}`);
         setUser(res.data);
-        const qr = await QRCode.toDataURL(
-          `${window.location.origin}/verifyUser/${tran_id}`,
-        );
-        setQrImage(qr);
+        if (res.data?.paymentStatus) {
+          const verifyId = res.data.participantId || res.data.userId || tran_id;
+          const qr = await QRCode.toDataURL(
+            `${window.location.origin}/verifyUser/${verifyId}`,
+          );
+          setQrImage(qr);
+        } else {
+          setQrImage("");
+        }
       } catch (err) {
         console.error("Error:", err);
       }
@@ -986,6 +998,8 @@ export default function ProfileCardPage() {
       </div>
     );
 
+  const isPaid = Boolean(user.paymentStatus);
+
   return (
     <div
       className="pass-print-page"
@@ -1002,73 +1016,110 @@ export default function ProfileCardPage() {
     >
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
 
-      {/* actions */}
-      <div
-        className="pass-actions"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.75rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <button
-          onClick={handleDownloadImage}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.65rem 1.75rem",
-            background: C.orange,
-            border: "none",
-            borderRadius: 2,
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "0.68rem",
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: C.navy3,
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "opacity 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          <FileDown size={14} />
-          Download Image
-        </button>
+      {isPaid ? (
+        <>
+          <div
+            className="pass-actions"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.75rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={handleDownloadImage}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.65rem 1.75rem",
+                background: C.orange,
+                border: "none",
+                borderRadius: 2,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "0.68rem",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: C.navy3,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "opacity 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              <FileDown size={14} />
+              Download Image
+            </button>
 
-        <button
-          onClick={handlePrintPass}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.65rem 1.75rem",
-            background: "transparent",
-            border: `1px solid ${C.orange}`,
-            borderRadius: 2,
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "0.68rem",
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: C.orange,
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "opacity 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          <Printer size={14} />
-          Print Pass
-        </button>
-      </div>
+            <button
+              onClick={handlePrintPass}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.65rem 1.75rem",
+                background: "transparent",
+                border: `1px solid ${C.orange}`,
+                borderRadius: 2,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "0.68rem",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: C.orange,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "opacity 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              <Printer size={14} />
+              Print Pass
+            </button>
+          </div>
 
-      <div className="pass-print-area">
-        <IDCard ref={cardRef} user={user} qrImage={qrImage} />
-      </div>
+          <div className="pass-print-area">
+            <IDCard ref={cardRef} user={user} qrImage={qrImage} />
+          </div>
+        </>
+      ) : (
+        <div
+          style={{
+            maxWidth: 480,
+            textAlign: "center",
+            padding: "2rem",
+            background: C.navy,
+            border: "1px solid rgba(240,122,16,0.25)",
+            borderRadius: 2,
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "1.35rem",
+              fontWeight: 900,
+              color: C.white,
+              marginBottom: "0.75rem",
+            }}
+          >
+            ID Card Not Available Yet
+          </p>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              lineHeight: 1.55,
+              color: C.gray,
+              margin: 0,
+            }}
+          >
+            Your payment is pending verification. Your ID card will be available
+            here after your registration payment is confirmed.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
