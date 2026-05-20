@@ -453,7 +453,7 @@ export default async function AdminPage({ searchParams }) {
               Verify paid participant from the admin dashboard.
             </div>
             <div className="admin-note">
-              Prin ID Card from the admin dashboard.
+              Print ID Card from the admin dashboard.
             </div>
           </div>
         </section>
