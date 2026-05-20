@@ -638,7 +638,7 @@ export default function ProfileCardPage() {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/verifyUser/${tran_id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/verifyUser/${tran_id}`,
         );
         setUser(res.data);
       } catch (err) {

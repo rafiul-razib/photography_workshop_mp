@@ -350,7 +350,7 @@ export default function VerifyUser() {
     const fetchUser = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/verifyUser/${transactionId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/verifyUser/${transactionId}`,
         );
         setUser(res.data);
       } catch (err) {
